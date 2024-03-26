@@ -1,1 +1,9 @@
 
+//동영상 클릭시 영상이 바뀌면서 reload 되도록 변경
+//Link : https://www.dongjak.go.kr/portal/mcms/apiVideo/list.do?cateName=347&menuNo=201459
+
+//before : 아무것도 하지 않게 되어있음.
+//<a href="javascript:void(0);"></a>
+
+//after : link 형식으로 값을 준뒤 고유값으로 구분
+//<a href="/portal/mcms/apiVideo/list.do?cateName=347&menuNo=201459&mediaID=${result.mediaID}" data-mediaid="${result.mediaID}">
