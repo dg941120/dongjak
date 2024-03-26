@@ -1,0 +1,50 @@
+//CMS 내 기능 추가 : 요청필드(처리현황, 주관부서, 협조부서 , 내용)
+//처리현황(processtmlmt)만 기술
+
+
+//1. ApplicationAPPMST114Service.java 파일 내부 param 값에 처리현황 추가
+param.put("processtmlmt", param.getString("processtmlmt"));
+...
+sqlDAO.modify("modifyContent", param);
+
+//2. applicationReqst_SQL_oracle.xml 파일 내부 호출됫던 id가 modifyContent 함수쪽에 처리현황 추가 , TO_DATE 사용해 문자 > 날짜로 치환
+<update id="modifyContent" parameterType="zvl" >
+		<![CDATA[
+			 UPDATE TB_PROGRM_REQST_INFO
+				SET
+				   OPTN22 = #{adminUserId},
+				   OPTN25 = #{adminUserNm},
+				   OPTN23 = #{modifyreason},
+				   SUBJECT = #{subject},
+				   OPTN24 = #{optn24},
+				   UPDT_DT = SYSDATE,
+				   NTT_CN  = #{nttCn:CLOB},
+				   NTT_CN2  = #{nttCn2:CLOB},
+				   PROCESSTMLMT = TO_DATE(#{processtmlmt}, 'YYYY.MM.DD HH24:MI:SS'),
+				   DEPT_ID = #{deptId},
+				   REFRN_DEPT_ID1 = #{refrnDeptId}
+			  WHERE
+			        REQST_ID = #{reqstId}
+		]]>
+	</update>
+
+
+//3. editContent.jsp 파일 내부도 그에 맞게 수정
+//before
+<h2>처리현황 수정</h2>
+<div class="view mb20">
+  <dl>
+    <dt>처리현황</dt>
+    <dd><textarea type="text" name="processtmlmt" id="processtmlmt" class="w100p" ><c:out value="${result.processtmlmt}" /></textarea></dd>
+  </dl>
+</div>
+
+//after
+<h2>처리현황 수정</h2>
+<div class="view mb20">
+  <dl>
+    <dt>처리현황</dt>
+    <c:set var="formattedDate" value="${fn:substringBefore(result.processtmlmt, '.')}" />
+    <dd><textarea type="text" name="processtmlmt" id="processtmlmt" class="w100p" ><c:out value="${formattedDate}" /></textarea></dd>
+  </dl>
+</div>
