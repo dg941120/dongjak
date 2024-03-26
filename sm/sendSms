@@ -1,0 +1,84 @@
+//동작구청 위치안내 문자전송 서비스
+//위치 : https://www.dongjak.go.kr/portal/main/contents.do?menuNo=200666
+//클릭시 문자전송 안내 페이지로 이동되며 번호받아서 넘길 수 있게 작성.
+
+//문자 전송 안내 페이지로 이동하는 함수 생성(onSms)
+<script>
+function onSms(){
+	window.open("/static/roadInfo/send.jsp", "popup", "width=503,height=713,scrollbars=no,toolbar=no,top=0,left=100");
+}
+</script>
+<h2>약도</h2>
+<p><a class="b-go" href="javascript:void(0);" onclick="onSms();" title="새창열림">'동작구청 위치안내 문자전송 서비스 바로가기'</a></p>
+
+//문자 전송 페이지
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="util" uri="http://www.unp.co.kr/util"%>
+<link rel="stylesheet" type="text/css" href="https://www.dongjak.go.kr/static/font/NotoSans/notosans.css">
+<link rel="stylesheet" type="text/css" href="./css/pop.css?v=1">
+<script src="/static/jslibrary/jquery-1.12.2.min.js"></script>
+
+<script type="text/javascript">
+
+	function goSend(){
+		var data = $("#frm").serialize();
+		if($('#moblphon1').val() == '' || $('#moblphon2').val() == '' || $('#moblphon3').val() == ''){
+			alert('휴대전화번호를 입력하십시오.');
+			return;
+		}
+
+		$.post(
+				"/portal/singl/roadInfo/send.do",
+				data,
+				function( data ) {
+					window.close();
+					alert("발송하였습니다.");
+				});
+	}
+
+	function goCancel(){
+		if(confirm('동작구청 위치안내 문자전송 서비스를 취소 하시겠습니까?')) {
+			window.open('','_self');
+			window.close();
+		}
+	}
+
+</script>
+
+<head>
+	<title>동작구청 위치안내 문자전송 서비스</title>
+</head>
+<body>
+<form name="frm" id="frm" method="post" action="/portal/singl/roadInfo/send.do">
+	<div class="pop-wrap">
+		<div class="pop-head">
+			<p><img src="./images/pop_tit.png" alt="동작구청 위치안내 문자전송 서비스" /></p>
+		</div>
+		<div class="enter-form">
+			<p><img src="./images/enter_num.gif" alt="문자전송을 위한 휴대번호를 입력해주세요." /></p>
+			<div class="ent">
+				<input type="text" id="moblphon1" name="moblphon1" maxlength="3" title="핸드폰 앞자리" value=""/>
+				-
+				<input type="text" id="moblphon2" name="moblphon2" maxlength="4" title="핸드폰 중간자리" value=""/>
+				-
+				<input type="text" id="moblphon3" name="moblphon3" maxlength="4" title="핸드폰 뒷자리" value=""/>
+				<a href="#goSend" class="pop-btn1" onclick="javascript:goSend();">전송</a>
+				<a href="#goCancel" class="pop-btn2" onclick="javascript:goCancel();">취소</a>
+			</div>
+			<p class="pop-txt">*문자전송을 위한 휴대폰번호를 입력후에 전송 버튼을 클릭하세요.</p>
+			<p class="pop-txt">*휴대폰번호는 저장하지 않습니다.</p>
+		</div>
+		<div class="phone-bg">
+			<div class="phb-in">
+				<p class="pop-txt">
+				<input type="hidden" name="info" value="동작구청 길안내 : 1,9호선 노량진역 5번출구에서 1분거리">
+				동작구청 길안내 : 1,9호선 노량진역 5번출구에서 1분거리
+				</p>
+			</div>
+		</div>
+	</div>
+</form>
+</body>
