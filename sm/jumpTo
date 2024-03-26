@@ -1,0 +1,14 @@
+//위치 : 메인페이지 > 우리동작 > 동작홍보관 > 동작구 어르신소식지
+//https://www.dongjak.go.kr/portal/bbs/B0001285/list.do?pageUnitTemp=8&menuNo=201260
+//요구사항 : 어르신소식지 상단 탭을 안보이게 처리 + 무료정기구독신청버튼탭도 삭제 , 일반 소식지 페이지는 나와야함
+
+
+
+//before : masterVO의 aditCntntsCn 값으로 선언되어있음, 삭제해도되나 공통으로 쓰고 있는 페이지가 있어 JSTL을 통한 분기처리
+${masterVO.aditCntntsCn }
+
+//after
+<c:if test="${paramVO.bbsId eq 'B0000771'}">
+	${masterVO.aditCntntsCn }
+</c:if>
+
