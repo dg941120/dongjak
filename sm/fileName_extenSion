@@ -1,0 +1,14 @@
+//첨부파일 확장자 로직 변경(Only jpg, pdf) 만 가능하게
+
+
+//1. body에서 accept로 파일 설정을 (jpg, pdf) 만 가능하게 , 또한 script단에서 맞지 않게 들어올경우 alert창과 동시에 초기화)
+//정상적으로 작동은 하나 사용자가 파일 선택창에서 모든 확장자로 변경해주면 다른 확장자를 넣을 수 있었음
+<input name="file_1" type="file" id="file_1" class="input_file form-control" title="첨부파일 1" accept=".jpg, .pdf"/>
+
+
+//2. script단에서 맞지 않게 들어올경우 미허용 alert창과 동시에 초기화&포커싱
+if ($.inArray(fileExtension, allowedExtensions) === -1) {
+            alert("확장자가 허용되지 않는 파일입니다. jpg 또는 pdf 파일을 업로드해주세요.");
+            $(this).val("");
+            $(this).focus();
+        }
