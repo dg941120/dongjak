@@ -1,0 +1,10 @@
+//footer data 깨지는 현상
+//확인해보니 페이지는 정상이며 console 창 에러가 출력되고 있었음
+//Syntax error, unrecognized expression: a[data-mediaID=] 데이터타입에러
+
+
+// before : data-mediaID 값이 없거나 속성값이 비어있는경우 체크
+$('a[data-mediaID=]').addClass('active')
+
+//after : data-mediaID 값은 있으며 속성값이 비어있을경우만 체크
+$('a[data-mediaID*=""]').addClass('active')
