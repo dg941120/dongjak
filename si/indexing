@@ -1,0 +1,378 @@
+//검색 색인
+//현재 동작구청 통합검색시 꽤 많은 건들이 조회되지 않고 있음. 이에대한 분석과 해결방안
+
+
+//현재 검색 시 사용되는 쿼리문 => V_BBS_3 뷰 테이블에서 가져옴
+SELECT
+A.NTT_ID AS DQ_ID,
+A.NTT_SJ AS TITLE,
+A.NTT_CN AS CONTENT,
+A.FULLMENULINK AS URL,
+A.REGIST_DT AS DATES,
+A.NTCR_NM AS WRITER,
+A.ORIGNL_FILE_NM AS FILE_NM,
+REPLACE(A.DOWNLOADLINK, '\n', '|') AS FILE_PATH,
+B.SITE_NM ||' > ' || REPLACE(B.RELATE_MENU_NM_LIST, '|', ' > ') AS MENU_NM,
+DOWNLOADLINK AS FILE_CONTENT
+FROM DONGJAK.V_BBS_3 A
+LEFT JOIN DONGJAK.V_MENU B
+ON A.MENU_NO = B.MENU_NO
+
+//V_BBS_3 뷰 DDL
+//쿼리개수 : 70,279개
+CREATE OR REPLACE FORCE VIEW "DONGJAK"."V_BBS_3" ("NTT_ID", "MENU_NO", "BBS_ID", "NTT_SJ", "NTT_CN", "NTCR_NM", "REGIST_DT", "FULLMENULINK", "ORIGNL_FILE_NM", "DOWNLOADLINK") AS
+  SELECT
+    a.NTT_ID,
+    b.menu_NO,
+    a.BBS_ID,
+    a.NTT_SJ,
+    a.NTT_CN,
+    a.NTCR_NM,
+    a.REGIST_DT,
+    ('/' || b.site_id || '/bbs/' || a.bbs_id || '/view.do?nttId=' || a.ntt_id || '&' || 'menuNo=' || b.menu_no) AS fullMenuLink,
+    c.ORIGNL_FILE_NM,
+    c.DOWNLOADLINK
+  FROM TB_BBS_ESTN a
+   INNER JOIN TC_MENU_INFO b
+       ON a.bbs_id = b.BBS_ID
+   INNER JOIN
+       (SELECT ATCH_FILE_ID,
+              ORIGNL_FILE_NM,
+              file_SN,
+              ('https://www.dongjak.go.kr/portal/cmmn/file/fileDown.do?atchFileId=' || ATCH_FILE_ID || '&' || 'fileSn=' || FILE_SN )AS DOWNLOADLINK
+         FROM TC_CMMN_FILE_DETAIL
+       ) c
+       ON a.ATCH_FILE_ID = c.ATCH_FILE_ID
+       AND b.LEAF_NODE_AT = 'Y'
+       AND a.DELETE_CD = '0'
+       AND a.SECRET_AT = 'N'
+       AND a.USE_AT = 'Y'
+       AND b.SITE_ID IN ('portal' , 'healthcare', 'reservation','dong')
+       AND a.bbs_id IN ('B0000082','B0000083','B0000022', 'B0000171', 'B0000172', 'B0000173', 'B0000174', 'B0000221', 'B0000222', 'B0000301', 'B0000371', 'B0000373', 'B0000381', 'B0000382', 'B0000503', 'B0000521', 'B0000561', 'B0000591', 'B0000621', 'B0000622', 'B0000623', 'B0000686', 'B0000687', 'B0000690', 'B0000702', 'B0000731', 'B0000753', 'B0000831', 'B0000891', 'B0000946', 'B0000991', 'B0001062', 'B0001071', 'B0001101', 'B0001200', 'B0001201', 'B0001203', 'B0001206', 'B0001207', 'B0001210', 'B0001215', 'B0001216', 'B0001217', 'B0001218', 'B0001219', 'B0001224', 'B0001225', 'B0001226', 'B0001227', 'B0001228', 'B0001229', 'B0001231', 'B0001232', 'B0001233', 'B0001234', 'B0001235', 'B0001236' )
+
+UNION ALL
+SELECT
+	NTT_ID,
+	menu_NO,
+	BBS_ID,
+	NTT_SJ,
+	NTT_CN,
+	NTCR_NM,
+	REGIST_DT,
+	fullMenuLink ||'=' || menu_no AS fullMenuLink,
+	ORIGNL_FILE_NM,
+	DOWNLOADLINK
+FROM
+(
+SELECT  a.NTT_ID,
+		DECODE(a.dept_id,
+            'DP_080500',200794, /*가로행정과*/
+            'DP_030100',200804, /*감사담당관*/
+            'DP_090200',200802, /*건강관리과*/
+            'DP_070300',200788, /*건축과*/
+            'DP_050800',200772, /*경제진흥과*/
+            'DP_080800',200856, /*공원녹지과*/
+            'DP_040800',200828, /*교육정책과*/
+            'DP_080100',200791, /*교통행정과*/
+            'DP_010200',200824, /*기획조정과*/
+            'DP_080300',200793, /*도로관리과*/
+            'DP_070700',200787, /*도시개발과*/
+            'DP_070200',200786, /*도시계획과*/
+            'DP_080700',200846, /*맑은환경과*/
+            'DP_010300',200868, /*미래도시과*/
+            'DP_040500',200820, /*민원여권과*/
+            'DP_090500',200800, /*보건기획과*/
+            'DP_090100',200801, /*보건위생과*/
+            'DP_090300',200803, /*보건의약과*/
+            'DP_090600',201415, /*보건지소*/
+            'DP_060200',200782, /*보육여성과*/
+            'DP_060500',200779, /*복지정책과*/
+            'DP_040700',200834, /*부동산정보과*/
+            'DP_060100',200780, /*사회복지과*/
+            'DP_060800',201308, /*아동청소년과*/
+            'DP_120100',201244, /*안전재난담당관*/
+            'DP_060700',200781, /*어르신장애인과*/
+            'DP_050500',201091, /*일자리정책과*/
+            'DP_040200',200768, /*자치행정과*/
+            'DP_050100',200774, /*재무과*/
+            'DP_050300',200777, /*재산세과*/
+            'DP_010400',200870, /*전략사업과*/
+            'DP_080200',200792, /*주차관리과*/
+            'DP_070100',200785, /*주택과*/
+            'DP_050600',201309, /*지방소득세과*/
+            'DP_050200',200776, /*징수과*/
+            'DP_080600',200844, /*청소행정과*/
+            'DP_040400',200769, /*체육문화과*/
+            'DP_080400',200797, /*치수과*/
+            'DP_040100',200767, /*행정지원과*/
+            'DP_010100',200818, /*홍보과*/
+        b.menu_no ) AS menu_NO,
+       a.BBS_ID,
+       a.NTT_SJ,
+       a.NTT_CN,
+       a.NTCR_NM,
+       a.REGIST_DT,
+       '/' || b.site_id || '/bbs/' || a.bbs_id || '/view.do?nttId=' || a.ntt_id || '&' || 'deptId=' || a.dept_id AS fullMenuLink,
+       c.ORIGNL_FILE_NM,
+       c.DOWNLOADLINK
+  FROM TB_BBS_ESTN a
+   INNER JOIN TC_MENU_INFO b
+       ON a.bbs_id = b.BBS_ID
+   INNER JOIN
+       (SELECT ATCH_FILE_ID,
+              ORIGNL_FILE_NM,
+              file_SN,
+              ('https://www.dongjak.go.kr/portal/cmmn/file/fileDown.do?atchFileId=' || ATCH_FILE_ID || '&' || 'fileSn=' || FILE_SN )AS DOWNLOADLINK
+         FROM TC_CMMN_FILE_DETAIL
+       ) c
+       ON a.ATCH_FILE_ID = c.ATCH_FILE_ID
+       AND b.LEAF_NODE_AT = 'Y'
+       AND a.DELETE_CD = '0'
+       AND a.SECRET_AT = 'N'
+       AND a.USE_AT = 'Y'
+       AND b.SITE_ID IN ('portal')
+       AND a.bbs_id IN ( 'B0000362')
+    );
+// 중간에 보면 ATCH_FILE_ID 값이 있어야만 값을 떨궈주는걸 확인할 수 있다.
+// CASE문을 사용해 없을때도 null 값을 해당해서 검색이 가능하게 변경 + INNER_JOIN -> LEFT_JOIN 변경(쿼리속도 개선)
+// 아래는 변경한 내역(SELECT 문 기준)
+SELECT
+    a.NTT_ID AS NTT_ID,
+    b.menu_NO AS MENU_NO,
+    a.BBS_ID AS BBS_ID,
+    a.NTT_SJ AS NTT_SJ,
+    a.NTT_CN AS NTT_CN,
+    a.NTCR_NM AS NTCR_NM,
+    a.REGIST_DT AS REGIST_DT,
+    ('/' || b.site_id || '/bbs/' || a.bbs_id || '/view.do?nttId=' || a.ntt_id || '&' || 'menuNo=' || b.menu_no) AS FULLMENULINK,
+    c.ORIGNL_FILE_NM AS ORIGNL_FILE_NM,
+    CASE
+        WHEN c.ATCH_FILE_ID IS NOT NULL THEN ('https://www.dongjak.go.kr/portal/cmmn/file/fileDown.do?atchFileId=' || c.ATCH_FILE_ID || '&' || 'fileSn=' || c.FILE_SN)
+        ELSE NULL
+    END AS DOWNLOADLINK
+FROM TB_BBS_ESTN a
+INNER JOIN TC_MENU_INFO b
+    ON a.bbs_id = b.BBS_ID
+LEFT JOIN TC_CMMN_FILE_DETAIL c
+    ON a.ATCH_FILE_ID = c.ATCH_FILE_ID
+WHERE b.LEAF_NODE_AT = 'Y'
+    AND a.DELETE_CD = '0'
+    AND a.SECRET_AT = 'N'
+    AND a.USE_AT = 'Y'
+    AND b.SITE_ID IN ('portal', 'healthcare', 'reservation', 'dong')
+    AND (a.bbs_id IN ('B0000082','B0000083','B0000022', 'B0000171', 'B0000172', 'B0000173', 'B0000174', 'B0000221', 'B0000222', 'B0000301', 'B0000371', 'B0000373', 'B0000381', 'B0000382', 'B0000503', 'B0000521', 'B0000561', 'B0000591', 'B0000621', 'B0000622', 'B0000623', 'B0000686', 'B0000687', 'B0000690', 'B0000702', 'B0000731', 'B0000753', 'B0000831', 'B0000891', 'B0000946', 'B0000991', 'B0001062', 'B0001071', 'B0001101', 'B0001200', 'B0001201', 'B0001203', 'B0001206', 'B0001207', 'B0001210', 'B0001215', 'B0001216', 'B0001217', 'B0001218', 'B0001219', 'B0001224', 'B0001225', 'B0001226', 'B0001227', 'B0001228', 'B0001229', 'B0001231', 'B0001232', 'B0001233', 'B0001234', 'B0001235', 'B0001236')
+   )
+
+UNION ALL
+
+SELECT
+    NTT_ID AS NTT_ID,
+    menu_NO AS MENU_NO,
+    BBS_ID AS BBS_ID,
+    NTT_SJ AS NTT_SJ,
+    NTT_CN AS NTT_CN,
+    NTCR_NM AS NTCR_NM,
+    REGIST_DT AS REGIST_DT,
+    FULLMENULINK ||'=' || menu_no AS FULLMENULINK,
+    ORIGNL_FILE_NM AS ORIGNL_FILE_NM,
+    DOWNLOADLINK AS DOWNLOADLINK
+FROM
+(
+SELECT  a.NTT_ID,
+        DECODE(a.dept_id,
+            'DP_080500',200794, /*가로행정과*/
+            'DP_030100',200804, /*감사담당관*/
+            'DP_090200',200802, /*건강관리과*/
+            'DP_070300',200788, /*건축과*/
+            'DP_050800',200772, /*경제진흥과*/
+            'DP_080800',200856, /*공원녹지과*/
+            'DP_040800',200828, /*교육정책과*/
+            'DP_080100',200791, /*교통행정과*/
+            'DP_010200',200824, /*기획조정과*/
+            'DP_080300',200793, /*도로관리과*/
+            'DP_070700',200787, /*도시개발과*/
+            'DP_070200',200786, /*도시계획과*/
+            'DP_080700',200846, /*맑은환경과*/
+            'DP_010300',200868, /*미래도시과*/
+            'DP_040500',200820, /*민원여권과*/
+            'DP_090500',200800, /*보건기획과*/
+            'DP_090100',200801, /*보건위생과*/
+            'DP_090300',200803, /*보건의약과*/
+            'DP_090600',201415, /*보건지소*/
+            'DP_060200',200782, /*보육여성과*/
+            'DP_060500',200779, /*복지정책과*/
+            'DP_040700',200834, /*부동산정보과*/
+            'DP_060100',200780, /*사회복지과*/
+            'DP_060800',201308, /*아동청소년과*/
+            'DP_120100',201244, /*안전재난담당관*/
+            'DP_060700',200781, /*어르신장애인과*/
+            'DP_050500',201091, /*일자리정책과*/
+            'DP_040200',200768, /*자치행정과*/
+            'DP_050100',200774, /*재무과*/
+            'DP_050300',200777, /*재산세과*/
+            'DP_010400',200870, /*전략사업과*/
+            'DP_080200',200792, /*주차관리과*/
+            'DP_070100',200785, /*주택과*/
+            'DP_050600',201309, /*지방소득세과*/
+            'DP_050200',200776, /*징수과*/
+            'DP_080600',200844, /*청소행정과*/
+            'DP_040400',200769, /*체육문화과*/
+            'DP_080400',200797, /*치수과*/
+            'DP_040100',200767, /*행정지원과*/
+            'DP_010100',200818, /*홍보과*/
+        b.menu_no ) AS menu_NO,
+       a.BBS_ID,
+       a.NTT_SJ,
+       a.NTT_CN,
+       a.NTCR_NM,
+       a.REGIST_DT,
+       '/' || b.site_id || '/bbs/' || a.bbs_id || '/view.do?nttId=' || a.ntt_id || '&' || 'deptId=' || a.dept_id AS FULLMENULINK,
+       c.ORIGNL_FILE_NM,
+       c.DOWNLOADLINK
+  FROM TB_BBS_ESTN a
+   INNER JOIN TC_MENU_INFO b
+       ON a.bbs_id = b.BBS_ID
+   INNER JOIN
+       (SELECT ATCH_FILE_ID,
+              ORIGNL_FILE_NM,
+              file_SN,
+              ('https://www.dongjak.go.kr/portal/cmmn/file/fileDown.do?atchFileId=' || ATCH_FILE_ID || '&' || 'fileSn=' || FILE_SN ) AS DOWNLOADLINK
+         FROM TC_CMMN_FILE_DETAIL
+       ) c
+       ON a.ATCH_FILE_ID = c.ATCH_FILE_ID
+       AND b.LEAF_NODE_AT = 'Y'
+       AND a.DELETE_CD = '0'
+       AND a.SECRET_AT = 'N'
+       AND a.USE_AT = 'Y'
+       AND b.SITE_ID IN ('portal')
+       AND a.bbs_id IN ('B0000362')
+);
+
+// 쿼리개수 : 103,351개
+// 작업은 끝났는데 해당 뷰는 복합 뷰라서 반영을 어떻게 해야할지 고민( 복합 뷰 업데이트는 진행해본적이 없음 )
+// 기존 뷰를 1.백업 -> 2.드롭 -> 3.새뷰 생성(수정한 뷰) 순으로 진행
+
+1. 백업
+2. 드롭
+DROP VIEW V_BBS_3;
+3. 새 뷰 생성(수정한 뷰)
+CREATE VIEW V_BBS_3 AS
+SELECT
+    a.NTT_ID AS NTT_ID,
+    b.menu_NO AS MENU_NO,
+    a.BBS_ID AS BBS_ID,
+    a.NTT_SJ AS NTT_SJ,
+    a.NTT_CN AS NTT_CN,
+    a.NTCR_NM AS NTCR_NM,
+    a.REGIST_DT AS REGIST_DT,
+    ('/' || b.site_id || '/bbs/' || a.bbs_id || '/view.do?nttId=' || a.ntt_id || '&' || 'menuNo=' || b.menu_no) AS FULLMENULINK,
+    c.ORIGNL_FILE_NM AS ORIGNL_FILE_NM,
+    CASE
+        WHEN c.ATCH_FILE_ID IS NOT NULL THEN ('https://www.dongjak.go.kr/portal/cmmn/file/fileDown.do?atchFileId=' || c.ATCH_FILE_ID || '&' || 'fileSn=' || c.FILE_SN)
+        ELSE NULL
+    END AS DOWNLOADLINK
+FROM TB_BBS_ESTN a
+INNER JOIN TC_MENU_INFO b
+    ON a.bbs_id = b.BBS_ID
+LEFT JOIN TC_CMMN_FILE_DETAIL c
+    ON a.ATCH_FILE_ID = c.ATCH_FILE_ID
+WHERE b.LEAF_NODE_AT = 'Y'
+    AND a.DELETE_CD = '0'
+    AND a.SECRET_AT = 'N'
+    AND a.USE_AT = 'Y'
+    AND b.SITE_ID IN ('portal', 'healthcare', 'reservation', 'dong')
+    AND (a.bbs_id IN ('B0000082','B0000083','B0000022', 'B0000171', 'B0000172', 'B0000173', 'B0000174', 'B0000221', 'B0000222', 'B0000301', 'B0000371', 'B0000373', 'B0000381', 'B0000382', 'B0000503', 'B0000521', 'B0000561', 'B0000591', 'B0000621', 'B0000622', 'B0000623', 'B0000686', 'B0000687', 'B0000690', 'B0000702', 'B0000731', 'B0000753', 'B0000831', 'B0000891', 'B0000946', 'B0000991', 'B0001062', 'B0001071', 'B0001101', 'B0001200', 'B0001201', 'B0001203', 'B0001206', 'B0001207', 'B0001210', 'B0001215', 'B0001216', 'B0001217', 'B0001218', 'B0001219', 'B0001224', 'B0001225', 'B0001226', 'B0001227', 'B0001228', 'B0001229', 'B0001231', 'B0001232', 'B0001233', 'B0001234', 'B0001235', 'B0001236')
+   )
+
+UNION ALL
+
+SELECT
+    NTT_ID AS NTT_ID,
+    menu_NO AS MENU_NO,
+    BBS_ID AS BBS_ID,
+    NTT_SJ AS NTT_SJ,
+    NTT_CN AS NTT_CN,
+    NTCR_NM AS NTCR_NM,
+    REGIST_DT AS REGIST_DT,
+    FULLMENULINK ||'=' || menu_no AS FULLMENULINK,
+    ORIGNL_FILE_NM AS ORIGNL_FILE_NM,
+    DOWNLOADLINK AS DOWNLOADLINK
+FROM
+(
+SELECT  a.NTT_ID,
+        DECODE(a.dept_id,
+            'DP_080500',200794, /*가로행정과*/
+            'DP_030100',200804, /*감사담당관*/
+            'DP_090200',200802, /*건강관리과*/
+            'DP_070300',200788, /*건축과*/
+            'DP_050800',200772, /*경제진흥과*/
+            'DP_080800',200856, /*공원녹지과*/
+            'DP_040800',200828, /*교육정책과*/
+            'DP_080100',200791, /*교통행정과*/
+            'DP_010200',200824, /*기획조정과*/
+            'DP_080300',200793, /*도로관리과*/
+            'DP_070700',200787, /*도시개발과*/
+            'DP_070200',200786, /*도시계획과*/
+            'DP_080700',200846, /*맑은환경과*/
+            'DP_010300',200868, /*미래도시과*/
+            'DP_040500',200820, /*민원여권과*/
+            'DP_090500',200800, /*보건기획과*/
+            'DP_090100',200801, /*보건위생과*/
+            'DP_090300',200803, /*보건의약과*/
+            'DP_090600',201415, /*보건지소*/
+            'DP_060200',200782, /*보육여성과*/
+            'DP_060500',200779, /*복지정책과*/
+            'DP_040700',200834, /*부동산정보과*/
+            'DP_060100',200780, /*사회복지과*/
+            'DP_060800',201308, /*아동청소년과*/
+            'DP_120100',201244, /*안전재난담당관*/
+            'DP_060700',200781, /*어르신장애인과*/
+            'DP_050500',201091, /*일자리정책과*/
+            'DP_040200',200768, /*자치행정과*/
+            'DP_050100',200774, /*재무과*/
+            'DP_050300',200777, /*재산세과*/
+            'DP_010400',200870, /*전략사업과*/
+            'DP_080200',200792, /*주차관리과*/
+            'DP_070100',200785, /*주택과*/
+            'DP_050600',201309, /*지방소득세과*/
+            'DP_050200',200776, /*징수과*/
+            'DP_080600',200844, /*청소행정과*/
+            'DP_040400',200769, /*체육문화과*/
+            'DP_080400',200797, /*치수과*/
+            'DP_040100',200767, /*행정지원과*/
+            'DP_010100',200818, /*홍보과*/
+        b.menu_no ) AS menu_NO,
+       a.BBS_ID,
+       a.NTT_SJ,
+       a.NTT_CN,
+       a.NTCR_NM,
+       a.REGIST_DT,
+       '/' || b.site_id || '/bbs/' || a.bbs_id || '/view.do?nttId=' || a.ntt_id || '&' || 'deptId=' || a.dept_id AS FULLMENULINK,
+       c.ORIGNL_FILE_NM,
+       c.DOWNLOADLINK
+  FROM TB_BBS_ESTN a
+   INNER JOIN TC_MENU_INFO b
+       ON a.bbs_id = b.BBS_ID
+   INNER JOIN
+       (SELECT ATCH_FILE_ID,
+              ORIGNL_FILE_NM,
+              file_SN,
+              ('https://www.dongjak.go.kr/portal/cmmn/file/fileDown.do?atchFileId=' || ATCH_FILE_ID || '&' || 'fileSn=' || FILE_SN ) AS DOWNLOADLINK
+         FROM TC_CMMN_FILE_DETAIL
+       ) c
+       ON a.ATCH_FILE_ID = c.ATCH_FILE_ID
+       AND b.LEAF_NODE_AT = 'Y'
+       AND a.DELETE_CD = '0'
+       AND a.SECRET_AT = 'N'
+       AND a.USE_AT = 'Y'
+       AND b.SITE_ID IN ('portal')
+       AND a.bbs_id IN ('B0000362')
+);
+
+
+
+
+// 이후 배치돌려보니 성공적으로 데이터 검색완료.
+
+
+
