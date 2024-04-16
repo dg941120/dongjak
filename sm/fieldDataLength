@@ -1,0 +1,41 @@
+//문제발생 : 공공용 현수막 게시대 신청하기 에서 '설치업체명' 부분 길이가 길어질경우 오류 발생 , 50자까지 가능하게 열어달라고함.
+//일반화 : 신청 게시판에서 특정필드(설치업체명)를 특정 길이를 넘기면 오류가 발생
+
+//에러전문
+java.sql.SQLException: ORA-12899: "DONGJAK"."TN_REQST_INDVDLINFO_DAMO"."DSCNT_CD" 열에 대한 값이 너무 큼(실제: 924, 최대값: 32) // 최대값이 32로 잡혀있다.
+ORA-06512: "DONGJAK.sITN_REQST_INDVDLINFO",  3행
+ORA-04088: 트리거 'DONGJAK.sITN_REQST_INDVDLINFO'의 수행시 오류
+
+//진행도
+테이블명 : TN_REQST_INDVDLINFO_DAMO
+필드 : DSCNT_CD
+타입 : VARCHAR2(32) -> VARCHAR2(200) // 에러발생
+
+// 기존 필드에 null값인 데이터가 들어가있음.
+SQL Error [1451] [72000]: ORA-01451: 열이 이미 NULL로 되어 있습니다
+
+// NULL 값 조회 및 카운트
+SELECT COUNT(*)
+FROM TN_REQST_INDVDLINFO_DAMO
+WHERE DSCNT_CD IS NULL;
+
+// 해당 값 0으로 업데이트
+UPDATE TN_REQST_INDVDLINFO
+SET DSCNT_CD = '0'  //문자형기준, 숫자형은 0
+WHERE DSCNT_CD IS NULL;
+
+
+// 업데이트전 타입 체크 필요할시
+// 결과값 : TYPE_CHECK = VARCHAR2
+SELECT TYPE_CHECK
+FROM ALL_TAB_COLUMNS
+WHERE TABLE_NAME = 'TN_REQST_INDVDLINFO'
+AND COLUMN_NAME = 'DSCNT_CD';
+
+// 변경 후 정상적으로 넘어감.
+
+
+
+
+
+
