@@ -48,6 +48,7 @@
   </c:if>
 
 
+2. 변경
 //select 박스 형식으로 변경, value값을 attrbVal.attrbSn으로 잡아서 쿼리문을 타게 해주는게 중요함(DONGJAK.TN_REQST_ATTRB_VALUE 안에 INSERT)
 <c:when test="${attrbFieldNm eq 'prgPlace'}">
   <dl>
