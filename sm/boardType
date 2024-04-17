@@ -1,0 +1,110 @@
+//요구사항 : 신청 게시판의 탑승장소를 셀렉트 박스로 변경
+//일반화 : 게시판 특정필드 타입변경
+//진행도
+
+1. 분석
+//기존구조 : DB에서 각 신청건마다 데이터를 가져와서 해당 값에 맞는 value값으로 분기처리
+
+//기존에 존재하는 필드
+<c:when test="${attrbFieldNm eq 'childAt'}">
+  <dl>
+    <dt>
+      <input type="hidden" id="reqstAttrbSn_${attrbFieldNm}" name="reqstAttrbSn_${attrbFieldNm}" value="${attrbVal.attrbSn}" />
+      <input type="hidden" id="reqstAttrbNm_${attrbFieldNm}" name="reqstAttrbNm_${attrbFieldNm}" value="${attrbVal.attrbNm}" />
+      <input type="hidden" id="essntl_${attrbFieldNm}Yn" name="${attrbFieldNm}Yn" value="${attrbVal.essntlAt}" />
+      <label for="childAt"><c:if test="${attrbVal.essntlAt eq 'Y'}"><span class="req"><span>필수입력</span></span></c:if>${attrbVal.attrbNm}</label>
+    </dt>
+    <dd>
+      <input type="radio" id="childAtAt1" name="childAt" value="N" ${result.childAt eq 'N' ? 'checked="checked"' : ''} /> 해당없음
+      <input type="radio" id="childAtAt2" name="childAt" value="Y" ${result.childAt eq 'Y' ? 'checked="checked"' : ''} /> 다자녀 (세자녀 이상)
+    </dd>
+  </dl>
+</c:when>
+
+//존재하지 않고 새로 추가해주는 필드
+<c:otherwise>
+  <dl>
+    <dt>
+      <input type="hidden" id="essntl_${attrbFieldNm}Yn" name="${attrbFieldNm}Yn" value="${attrbVal.essntlAt}" />
+      <input type="hidden" id="reqstAttrbSn_${attrbFieldNm}" name="reqstAttrbSn_${attrbFieldNm}" value="${attrbVal.attrbSn}" />
+      <input type="hidden" id="reqstAttrbNm_${attrbFieldNm}" name="reqstAttrbNm_${attrbFieldNm}" value="${attrbVal.attrbNm}" />
+      <label for="reqstAttrbFieldNm_${attrbVal.attrbSn}"><c:if test="${attrbVal.essntlAt eq 'Y'}"><span class="req"><span>필수입력</span></span></c:if>${attrbVal.attrbNm}</label>
+    </dt>
+    <dd>
+    <c:if test="${attrbVal.attrbTyCd eq 'text'}">
+      <input type="text" class="w100p" id="reqstAttrbFieldNm_${attrbVal.attrbSn}" name="reqstAttrbFieldNm_${attrbVal.attrbSn}" title="${attrbVal.attrbNm}" value="${attrbValue.value}" >
+    </c:if>
+    <c:if test="${attrbVal.attrbTyCd eq 'textarea'}">
+      <textarea id="attrbFieldNm_${attrbVal.attrbSn}" name="reqstAttrbFieldNm_${attrbVal.attrbSn}" cols="150" rows="5" class="textarea">${attrbValue.value}</textarea>
+    </c:if>
+    </dd>
+  </dl>
+</c:otherwise>
+
+
+  //이중에서 탑승장소라는 필드는 attrbVal.attrbTyCd값이 text인 것을 타고 있으므로 해당 쿼리문을 토대로 변경해야함.
+  <c:if test="${attrbVal.attrbTyCd eq 'text'}">
+    <input type="text" class="w100p" id="reqstAttrbFieldNm_${attrbVal.attrbSn}" name="reqstAttrbFieldNm_${attrbVal.attrbSn}" title="${attrbVal.attrbNm}" value="${attrbValue.value}" >
+  </c:if>
+
+
+//select 박스 형식으로 변경, value값을 attrbVal.attrbSn으로 잡아서 쿼리문을 타게 해주는게 중요함(DONGJAK.TN_REQST_ATTRB_VALUE 안에 INSERT)
+<c:when test="${attrbFieldNm eq 'prgPlace'}">
+  <dl>
+    <dt>
+      <input type="hidden" id="essntl_${attrbFieldNm}Yn" name="${attrbFieldNm}Yn" value="${attrbVal.essntlAt}" />
+      <input type="hidden" id="reqstAttrbSn_${attrbFieldNm}" name="reqstAttrbSn_${attrbFieldNm}" value="${attrbVal.attrbSn}" />
+      <input type="hidden" id="reqstAttrbNm_${attrbFieldNm}" name="reqstAttrbNm_${attrbFieldNm}" value="${attrbVal.attrbNm}" />
+      <label for="reqstAttrbFieldNm_${attrbVal.attrbSn}"><c:if test="${attrbVal.essntlAt eq 'Y'}"><span class="req"><span>필수입력</span></span></c:if>${attrbVal.attrbNm}</label>
+    </dt>
+    <dd>
+          <select id="reqstAttrbFieldNm_${attrbVal.attrbSn}" name="reqstAttrbFieldNm_${attrbVal.attrbSn}" class="w30p">
+              <option value="">선택하세요</option>
+              <option value="유한양행 본사 앞">유한양행 본사 앞</option>
+              <option value="학산빌딩(상도역1번출구)">학산빌딩(상도역1번출구)</option>
+              <option value="대방역 1번 출구 건너">대방역 1번 출구 건너</option>
+              <option value="보라매공원역 2번 출구">보라매공원역 2번 출구</option>
+              <option value="대림성모병원 앞">대림성모병원 앞</option>
+              <option value="흑석동주민센터 건너">흑석동주민센터 건너</option>
+              <option value="남성역 2번출구">남성역 2번출구</option>
+              <option value="이수역 9번 출구">이수역 9번 출구</option>
+          </select>
+        </dd>
+  </dl>
+</c:when>
+
+
+//그래야 ReqstDAO.java 내의 addSub 함수안의 saveReqstAttrbValue를 타고들어감
+private void addSub(ZValue param) throws Exception {
+		long reqstSn = param.getLong("reqstSn");
+		Map<String, String> attrbValueMap = param.getStartWithParam("reqstAttrbFieldNm_");
+		for (Map.Entry<String, String> entry : attrbValueMap.entrySet()) {
+			String key = entry.getKey();
+			String value = entry.getValue();
+			if (StringUtils.hasText(value)) {
+				long attrbSn = StrUtils.parseLong(StrUtils.replace(key, "reqstAttrbFieldNm_", ""));
+				Assert.isTrue(attrbSn > 0);
+				saveReqstAttrbValue(attrbSn, reqstSn, value);
+			}
+		}
+	}
+
+//호출시 해당 쿼리문 실행
+<insert id="saveReqstAttrbValue" parameterType="zvl">
+		<![CDATA[
+		     INSERT INTO TN_REQST_ATTRB_VALUE (
+                  VALUE
+                 , ATTRB_SN
+                 , REQST_SN
+		     )
+			VALUES (
+				 #{value}
+				, #{attrbSn}
+				, #{reqstSn}
+			)
+		]]>
+	</insert>
+
+   
+
+   
