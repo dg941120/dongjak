@@ -1,0 +1,213 @@
+//요구사항 : 구청장에게 바란다 리스트페이지에 주관부서 담당자 추가
+//일반화 : 다른 테이블에 있는 필드 가져오기
+//진행도
+
+1. 돌고있는 쿼리문 확인
+<select id="findAllApplicationReqst" parameterType="zvl" resultMap="applicationReqstReplyResultMap">
+	/*applicationReqst_SQL_oracle.xml : findAllApplicationReqst */
+		<![CDATA[
+			SELECT  *
+			  FROM  (
+			SELECT ROWNUM RNUM, ALL_LIST.*
+			  FROM  (
+
+					SELECT A.REQST_ID,
+					       A.REQST_CD,
+					       A.PROCESSTMLMT,
+					       A.STTUS,
+					       A.RQSTDT,
+					       A.RCEPTDT,
+					       TO_CHAR(A.RQSTDT, 'YYYY-MM-DD') AS RQSTDT_FMT,
+					       TO_CHAR(A.RCEPTDT, 'YYYY-MM-DD') AS RCEPTDT_FMT,
+					       A.SUBJECT,
+					       A.OTHBC_AT,
+					       A.USER_ID,
+					       B.OFCPS_CD,
+					       A.USER_SN,
+					       A.RECV_NO,
+					       A.DELETE_CD,
+					       A.DELETEREASON,
+					       A.USER_PIN,
+					       A.DELETE_DT,
+					       TO_CHAR(A.DELETE_DT, 'YYYY-MM-DD') ,
+					       A.PETI_GUBUN,
+					       A.INQIRE_CO,
+					       A.SMS_AT,
+					       A.NM,
+					       A.EMAIL_AT,
+					       A.EMAIL,
+					       A.MOBLPHON,
+					       A.TELNO,
+					       A.DONG_CD,
+					       A.ZIP,
+					       A.ADDR1,
+					       A.ADDR2,
+					       A.OPTN1,
+					       A.OPTN2,
+					       A.OPTN3,
+					       A.OPTN4,
+					       A.OPTN5,
+					       A.OPTN6,
+					       A.OPTN7,
+					       A.OPTN8,
+					       A.OPTN9,
+					       A.OPTN10,
+					       A.OPTN11,
+					       A.OPTN12,
+					       A.OPTN13,
+					       A.OPTN14,
+					       A.OPTN15,
+					       A.OPTN16,
+					       A.OPTN17,
+					       A.OPTN18,
+					       A.OPTN19,
+					       A.OPTN20,
+					       A.OPTN21,
+						   A.OPTN22,
+						   A.OPTN23,
+						   A.OPTN24,
+						   A.OPTN25,
+						   A.OPTN26,
+						   A.OPTN27,
+						   A.OPTN28,
+						   A.OPTN29,
+						   A.OPTN30,
+					       A.ADIT_CN1,
+					       A.ADIT_CN2,
+					       A.ADIT_CN3,
+					       A.ATCH_FILE_ID,
+					       A.NTT_CN,
+					       A.DEPT_ID,
+					       A.REFRN_DEPT_ID1,
+					       A.REFRN_DEPT_ID2,
+						   A.REFRN_DEPT_ID3,
+						   A.REFRN_DEPT_ID4,
+						   A.REFRN_DEPT_ID5
+					  FROM TB_PROGRM_REQST_INFO A
+					  LEFT OUTER JOIN TM_MNGR_INFO B ON B.USER_ID = A.USER_ID
+			         WHERE A.REQST_CD = #{reqstCd}
+			         	]]>
+
+			         <if test='reqstCd == "APPMST107"'>
+						   AND A.MOBLPHON != '000-0000-0000'
+					 </if>
+		<include refid="findAllApplicationReqst-where" />
+
+		<![CDATA[	ORDER BY A.RQSTDT DESC
+				    ) ALL_LIST
+				    )
+			 WHERE  RNUM  > #{firstIndex}
+			   AND  RNUM <= #{firstIndex} + #{recordCountPerPage}
+		]]>
+	</select>
+
+
+2. 요청 필드 데이터 확인
+주관부서 담당자는 TB_PROGRM_RELY 테이블안의 USER_NM 필드에 존재함.
+
+3. 해당 쿼리수정
+- SELECT 쪽에 필드 추가(C.USER_NM)
+- 테이블 레프트 아우터 조인(TB_PROGRM_RELY)
+
+<select id="findAllApplicationReqst" parameterType="zvl" resultMap="applicationReqstReplyResultMap">
+	/*applicationReqst_SQL_oracle.xml : findAllApplicationReqst */
+		<![CDATA[
+			SELECT  *
+			  FROM  (
+			SELECT ROWNUM RNUM, ALL_LIST.*
+			  FROM  (
+
+					SELECT A.REQST_ID,
+					       A.REQST_CD,
+					       A.PROCESSTMLMT,
+					       A.STTUS,
+					       A.RQSTDT,
+					       A.RCEPTDT,
+					       TO_CHAR(A.RQSTDT, 'YYYY-MM-DD') AS RQSTDT_FMT,
+					       TO_CHAR(A.RCEPTDT, 'YYYY-MM-DD') AS RCEPTDT_FMT,
+					       A.SUBJECT,
+					       A.OTHBC_AT,
+					       A.USER_ID,
+					       B.OFCPS_CD,
+					       A.USER_SN,
+					       A.RECV_NO,
+					       A.DELETE_CD,
+					       A.DELETEREASON,
+					       A.USER_PIN,
+					       A.DELETE_DT,
+					       TO_CHAR(A.DELETE_DT, 'YYYY-MM-DD') ,
+					       A.PETI_GUBUN,
+					       A.INQIRE_CO,
+					       A.SMS_AT,
+					       A.NM,
+					       A.EMAIL_AT,
+					       A.EMAIL,
+					       A.MOBLPHON,
+					       A.TELNO,
+					       A.DONG_CD,
+					       A.ZIP,
+					       A.ADDR1,
+					       A.ADDR2,
+					       A.OPTN1,
+					       A.OPTN2,
+					       A.OPTN3,
+					       A.OPTN4,
+					       A.OPTN5,
+					       A.OPTN6,
+					       A.OPTN7,
+					       A.OPTN8,
+					       A.OPTN9,
+					       A.OPTN10,
+					       A.OPTN11,
+					       A.OPTN12,
+					       A.OPTN13,
+					       A.OPTN14,
+					       A.OPTN15,
+					       A.OPTN16,
+					       A.OPTN17,
+					       A.OPTN18,
+					       A.OPTN19,
+					       A.OPTN20,
+					       A.OPTN21,
+						   A.OPTN22,
+						   A.OPTN23,
+						   A.OPTN24,
+						   A.OPTN25,
+						   A.OPTN26,
+						   A.OPTN27,
+						   A.OPTN28,
+						   A.OPTN29,
+						   A.OPTN30,
+					       A.ADIT_CN1,
+					       A.ADIT_CN2,
+					       A.ADIT_CN3,
+					       A.ATCH_FILE_ID,
+					       A.NTT_CN,
+					       A.DEPT_ID,
+					       A.REFRN_DEPT_ID1,
+					       A.REFRN_DEPT_ID2,
+						   A.REFRN_DEPT_ID3,
+						   A.REFRN_DEPT_ID4,
+						   A.REFRN_DEPT_ID5,
+						   C.USER_NM
+					  FROM TB_PROGRM_REQST_INFO A
+					  LEFT OUTER JOIN TM_MNGR_INFO B ON B.USER_ID = A.USER_ID
+					  LEFT OUTER JOIN TB_PROGRM_RELY C ON C.REQST_ID = A.REQST_ID
+			         WHERE A.REQST_CD = #{reqstCd}
+			         	]]>
+
+			         <if test='reqstCd == "APPMST107"'>
+						   AND A.MOBLPHON != '000-0000-0000'
+					 </if>
+		<include refid="findAllApplicationReqst-where" />
+
+		<![CDATA[	ORDER BY A.RQSTDT DESC
+				    ) ALL_LIST
+				    )
+			 WHERE  RNUM  > #{firstIndex}
+			   AND  RNUM <= #{firstIndex} + #{recordCountPerPage}
+		]]>
+	</select>
+
+4. 로컬 반영 및 확인 > 정상
+5. 운영 반영 후 서버 재기동 > 정상
