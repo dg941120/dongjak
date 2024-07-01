@@ -1,0 +1,114 @@
+//홈페이지 인증코드로 세션값 잡아 넘기는 작업
+
+//현재 회원가입을 하면서 인증을 하다가 중간에 팅기는 경우가 많음
+//확인해보니 메인 > 회원가입은 정상 , 다른 곳에서 회원가입을 누를시 팅기고 있음
+//적용할 수 있는 로직은 현재 회원가입시 TM_USER_PIN 에 정보가 담기게 되는데, 이때 들어오는 인증구분(CRTFC_SE_CD) 키를 가지고 진행하면 될듯
+//공통 적용된 java 파일인만큼 적용후 신중히 테스트 필요
+
+//인증구분 코드
+CRTFC_SE_CD 인증구분
+MP == 핸드폰인증
+GP == 공공IPIN
+F == 페이스북
+T == 트위터
+K == 카카오
+N == 네이버
+G == 구글플러스
+ID == 아이디
+
+//인증구분 코드가 들어오면 적용되야 하므로 CRTFC_SE_CD 값이 비어 있지 않을때
+else if (!"".equals(crtfcSeCd)) {
+					try {
+           //해당 URL 이동
+						String goUrl = "/portal/member/user/joinInput.do?menuNo=200926&userTyCd=1";
+						HttpUtil.goUrl(response, goUrl,"");
+						return;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+				}
+
+
+//기존 handle 함수
+@Override
+	public void handle(HttpServletRequest request,	HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+
+		// Ajax를 통해 들어온것인지 파악한다
+		String ajaxHeader = request.getHeader("X-Ajax-call");
+		String result = "";
+
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		response.setCharacterEncoding("UTF-8");
+
+		if (ajaxHeader == null || "".equals(ajaxHeader)) {
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			Object principal = auth.getPrincipal();
+			if (principal instanceof UnpUserDetails) {
+				UnpUserDetails ud = (UnpUserDetails) principal;
+				String username = ud.getUsername();
+				MemberVO user = (MemberVO)ud.getUsersVO();
+
+				if (!"bos".equals(siteId) && "Y".equals(user.getMngrAt())) {
+					try {
+						HttpUtil.back(response, "관리자 로그인 접속중 입니다.\\n관리자를 로그아웃하시고 접속해주시기 바랍니다.");
+						return;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+				}
+				else if ("bos".equals(siteId) && !"Y".equals(user.getMngrAt())) {
+					try {
+						HttpUtil.back(response, "사용자 로그인 접속중 입니다.\\n사용자를 로그아웃하시고 접속해주시기 바랍니다.");
+						return;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+				}
+				else if (!"".equals(crtfcSeCd)) {
+					try {
+						String goUrl = "/portal/member/user/joinInput.do?menuNo=200926&userTyCd=1";
+						HttpUtil.goUrl(response, goUrl,"");
+						return;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+				}
+				else {
+					try {
+						if ("Y".equals(user.getBeforePasswordAt())) {
+							HttpUtil.goUrl(response, "/portal/singl/myPage/pwdChange.do?menuNo=200716",
+									"동작구청에서는 2017.7.1 홈페이지 개편에 따라 회원 여러분의 개인정보보호를 위하여 비밀번호 체계를 변경 강화하였습니다. \\n 바뀐 비밀번호 체계에 맞도록 첫 로그인 시 비밀번호를 변경토록 하고 있으니, 회원여러분의 개인정보보호를 위하여 비밀번호를 변경하여 주시기 바랍니다.");
+							return;
+						}
+						String forwardUrl = "/bos/member/admin/forLogin.do";
+						if ("ucms".equals(siteId)) {
+							forwardUrl = "/portal/member/user/forLogin.do?menuNo=200706";
+						}
+						HttpUtil.goUrl(response, forwardUrl, "접근 권한이 없습니다. 로그인 해주시기 바랍니다.");
+						return;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
+				request.setAttribute("username", username);
+			}
+			request.setAttribute("errormsg", accessDeniedException);
+			request.getRequestDispatcher(defaultErrorPage).forward(request, response);
+		}
+		else {
+			if ("true".equals(ajaxHeader)) {
+				result = "{\"result\" : \"fail\", \"msg\" : \"" + accessDeniedException.getMessage() + "\"}";
+			}
+			else {
+				result = "{\"result\" : \"fail\", \"msg\" : \"Access Denied\"}";
+			}
+			response.getWriter().print(result);
+			response.getWriter().flush();
+		}
+	}
+
