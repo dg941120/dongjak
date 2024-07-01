@@ -1,0 +1,94 @@
+function selectDept(deptId) {
+	$.getJSON(
+			"/portal/bbs/${paramVO.bbsId}/selectDept.json",
+			{deptId : deptId},
+			function(data) {
+				var result = data.selectDept;
+				if(result.deptLevel == '3'){
+					$('#deptImg').html('<img src="/static/portal/img/05/200660.jpg" alt="" class="mt20" />');
+					$('#deptSj').html(result.deptKorNm);
+					$('#deptJobCn').html(result.deptJobCn);
+				}else{
+					$('#deptImg').html("");
+					$('#deptSj').html("");
+					$('#deptJobCn').html("");
+				}
+			}
+
+		);
+
+	teamList(deptId);
+}
+function teamList(deptId) {
+    $.getJSON(
+        "/portal/bbs/${paramVO.bbsId}/teamList.json",
+        {bbsId : "B0000022", deptId : deptId},
+        function(data) {
+            var teamList = data.teamList;
+            $('#team *').remove();
+            if(teamList != ''){
+                $.each(teamList, function(key, value) {
+                    var deptKorNm = value.deptKorNm;
+                    /* var userNm = value.userNm; */
+                    var ofcpsNm = value.ofcpsNm;
+                    var userTelno = value.userTelno;
+                    var jobDetail = value.jobDetail;
+
+                    if (ofcpsNm == '과장') {
+                        userTelno = '';
+                    } else if (userTelno == null) {
+                        userTelno = '-';
+                    }
+
+                    if (deptKorNm == null){
+                        deptKorNm = '-';
+                    }
+					/* if(userNm == null){
+					var userNm = '-';
+					} */
+
+                    if (ofcpsNm == null){
+                        ofcpsNm = '-';
+                    }
+
+                    if (jobDetail == null){
+                        jobDetail = '-';
+                    } else {
+                    	//alert('77');
+						//	alert (document.getElementById("jobDetail").value);
+						jobDetail = jobDetail.replace(/\n/g,"<br/>");
+						//alert('11');
+						document.getElementById("jobDetail").value = jobDetail;
+						//alert('22');
+						document.getElementById("jobDetail").value.replace(/\n|\r\n/g,'<br/>');
+						//alert (document.getElementById("jobDetail").value);
+					}
+
+
+                    /* var telField = '';
+                    if (ofcpsNm !== '과장') {
+                        telField = '<td>' + userTelno + '</td>';
+                    } */
+
+
+                    $('#team').append('<tr><td>'+ deptKorNm +'</td>'+
+							'<td>'+ofcpsNm+'</td>'+'<td>'+userTelno+'</td>'+
+							'<td class=\"tal\">'+document.getElementById("jobDetail").value+'</td></tr>');
+                });
+
+
+                /* if (teamList.length > 0 && teamList[0].ofcpsNm == '과장') {
+                    $('th#cellPhone').remove();
+                } */
+
+            } else {
+                $('#team').html('<tr><td colspan="5">해당 직원이 없습니다.</td></tr>');
+            }
+        }
+    );
+}
+
+
+
+
+</script>
