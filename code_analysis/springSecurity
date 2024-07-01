@@ -1,0 +1,48 @@
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+//spring security을 사용하겠다
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
+//c문법
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+    
+  
+   //예외처리
+   <c:catch var = "e">
+	   //현재 사용자 정보를 가져와서 userVO에 담기
+	   <sec:authentication property="principal.authorities" var="userVO"/>
+   </c:catch>
+   //예외 발생시
+	<c:if test="${e ne null }">
+		//userVO 초기화
+		<c:set var="userVO" value=""/>
+	</c:if>
+<script>
+$(function(){
+  //변수할당
+	var userVO = "${userVO}";
+	var userTyCd = "${userInfo.userTyCd}";
+	var userCheck = null;
+	//userVO가 null이 아니거나 비지않을때
+	if(userVO != null || userVO != ""){
+		//ROLE_ADMINKEY를 찾아서 userCheck에 할당
+		 userCheck = userVO.match("ROLE_ADMINKEY");
+		//userCheck가 널일때
+		if(userCheck == null ){
+			//ROLE_ADMINKEY가 아닌 ROLE_USERKEY를 찾음
+			userCheck = userVO.match("ROLE_USERKEY");
+			//userTyCd가 5,6,7,8,9 중 하나가 아닐경우 alert + 창닫음
+			if(userTyCd == '5' || userTyCd == '6' || userTyCd == '7' || userTyCd == '8' || userTyCd == '9'){
+			}else{
+				alert("접근권한이 없습니다.");
+				window.close();
+				return;
+			}
+		}
+	}
+	//userVO가 널이거나 빈 문자열인 경우 로그인알림 + 창닫음
+	if(userVO == null || userVO == ""){
+			alert("로그인 후 이용해주세요.");
+			window.close();
+			return;
+	}
+})
+</script>
